@@ -1,0 +1,1627 @@
+version: v1-draft-2
+
+product_definition:
+  name: AI-traceable artifact graph for product development
+  category: document-driven collaboration protocol layer
+  one_sentence: >-
+    A platform-decoupled artifact system that standardizes cross-role handoffs
+    through traceable documents, typed relations, and validation-friendly
+    structure.
+  positioning:
+    do_not_position_as:
+      - all-in-one work platform
+      - AI skill marketplace
+      - prompt library
+      - general writing assistant
+    preferred_positioning:
+      - collaboration protocol layer
+      - artifact orchestration layer
+      - AI-native delivery spec layer
+      - traceable artifact graph
+
+mvp_positioning:
+  primary_user_profile: docs_as_code_tech_teams
+  github_native_distribution: true
+  first_entry_value: requirement_design_alignment
+  note: >-
+    v1 can model the full product-delivery chain, but the first user-visible
+    value should be clear requirement-to-design alignment inside a Git-based
+    workflow.
+
+core_thesis:
+  - artifacts are handoff interfaces, not only records
+  - artifacts must be both human-readable and machine-addressable
+  - traceability is a primary constraint, not an optional enhancement
+  - define canonical artifact model first, adapters later
+  - start with a small artifact surface and strong relation guarantees
+
+v1_scope:
+  lifecycle:
+    - brief
+    - prd_story_pack
+    - solution_design
+    - execution_plan
+    - test_acceptance
+    - release_review
+  primary_roles:
+    - pm
+    - tech_lead
+    - developer
+    - qa
+  secondary_roles:
+    - design
+    - operations
+    - data_analytics
+    - feedback_roles
+  non_goals:
+    - replace_project_management_tool
+    - replace_document_tool
+    - replace_code_hosting_tool
+    - replace_design_tool
+    - replace_bi_stack
+    - model_all_enterprise_workflows
+
+canonical_representation:
+  recommended_on_disk_format:
+    artifact_document: markdown_with_yaml_frontmatter
+    extension: ".md"
+    structure:
+      - yaml frontmatter for meta header
+      - markdown body for human narrative
+      - structured machine-readable blocks for trace units and relation edges
+    rationale:
+      - readable in GitHub
+      - diff-friendly in Git
+      - stable for AI/MCP parsing
+      - portable across editors and platforms
+  source_of_truth:
+    - artifact documents stored in git
+    - canonical IDs and typed refs defined in the artifact itself
+  adapter_boundary:
+    canonical:
+      - artifact IDs
+      - trace unit IDs
+      - relation edges
+      - artifact statuses
+      - validation rules
+    integration_specific:
+      - external ticket IDs
+      - platform workflow state
+      - platform URLs and sync metadata
+
+common_enums:
+  artifact_types:
+    - brief
+    - prd_story_pack
+    - solution_design
+    - execution_plan
+    - test_acceptance
+    - release_review
+  artifact_statuses:
+    - draft
+    - in_review
+    - approved
+    - active
+    - done
+    - archived
+  trace_unit_types:
+    - GOAL
+    - REQ
+    - NFR
+    - AC
+    - DEC
+    - RISK
+    - TASK
+    - TC
+    - REL
+    - REV
+    - Q
+  trace_unit_statuses:
+    - proposed
+    - accepted
+    - active
+    - done
+    - obsolete
+  relation_statuses:
+    - active
+    - superseded
+    - invalid
+  roles:
+    - pm
+    - tech_lead
+    - developer
+    - qa
+    - design
+    - operations
+    - data_analytics
+    - release_owner
+    - reviewer
+
+common_artifact_schema:
+  required_fields:
+    - artifact_id
+    - artifact_type
+    - title
+    - summary
+    - status
+    - version
+    - owner
+    - created_at
+    - updated_at
+    - scope
+  optional_fields:
+    - reviewers
+    - upstream_refs
+    - downstream_refs
+    - external_refs
+    - review_records
+    - validation_records
+    - status_history
+    - change_summary
+    - open_questions
+    - tags
+  field_definitions:
+    artifact_id:
+      type: string
+      example: PRD-2026-014
+      note: globally unique artifact identifier
+    artifact_type:
+      type: enum
+      allowed_values_ref: common_enums.artifact_types
+    title:
+      type: string
+      note: concise human-readable title
+    summary:
+      type: string
+      note: 1-3 sentence machine-friendly summary for fetch/list operations
+    status:
+      type: enum
+      allowed_values_ref: common_enums.artifact_statuses
+    version:
+      type: string
+      example: v0.1
+      note: artifact revision, not product version
+    owner:
+      type: actor_ref
+    reviewers:
+      type: list[actor_ref]
+    created_at:
+      type: iso8601_datetime
+    updated_at:
+      type: iso8601_datetime
+    scope:
+      type: scope_object
+    upstream_refs:
+      type: list[typed_ref]
+      note: artifact-level upstream lineage
+    downstream_refs:
+      type: list[typed_ref]
+      note: artifact-level declared downstream outputs
+    external_refs:
+      type: list[external_ref]
+      note: GitHub PRs, issues, commits, releases, dashboards, Figma, docs
+    review_records:
+      type: list[review_record]
+      note: structured review evidence used before promotion from in_review
+    validation_records:
+      type: list[validation_record]
+      note: structured validation evidence recorded against the artifact header
+    status_history:
+      type: list[status_transition_record]
+      note: append-only transition log for governance and auditability
+    change_summary:
+      type: list[string]
+      note: concise diff narrative between artifact versions
+    open_questions:
+      type: list[question_ref]
+    tags:
+      type: list[string]
+
+supporting_schemas:
+  actor_ref:
+    required_fields:
+      - actor_id
+      - role
+    optional_fields:
+      - display_name
+      - team
+      - capability
+      - decision_authority
+    field_definitions:
+      actor_id:
+        type: string
+        example: user:alice
+      role:
+        type: enum
+        allowed_values_ref: common_enums.roles
+      display_name:
+        type: string
+      team:
+        type: string
+      capability:
+        type: string
+      decision_authority:
+        type: string
+
+  scope_object:
+    required_fields:
+      - product_area
+      - feature_key
+      - in_scope
+    optional_fields:
+      - out_of_scope
+      - target_release
+      - target_iteration
+      - target_platforms
+    field_definitions:
+      product_area:
+        type: string
+        example: growth
+      feature_key:
+        type: string
+        example: user-tag-bulk-import
+      in_scope:
+        type: list[string]
+      out_of_scope:
+        type: list[string]
+      target_release:
+        type: string
+        example: 2026.04
+      target_iteration:
+        type: string
+        example: sprint-18
+      target_platforms:
+        type: list[string]
+
+  typed_ref:
+    required_fields:
+      - target_id
+      - target_kind
+      - relation_type
+    optional_fields:
+      - target_artifact_id
+      - target_type
+      - note
+      - required_for_promotion
+    field_definitions:
+      target_id:
+        type: string
+        note: artifact ID, trace unit ID, or external identifier
+      target_kind:
+        type: enum
+        allowed_values:
+          - artifact
+          - trace_unit
+          - external
+      relation_type:
+        type: enum
+        allowed_values_ref: relation_edge_types
+      target_artifact_id:
+        type: string
+        note: parent artifact ID when target_kind is trace_unit
+      target_type:
+        type: string
+        note: optional artifact type or trace unit type hint
+      note:
+        type: string
+      required_for_promotion:
+        type: boolean
+
+  external_ref:
+    required_fields:
+      - system
+      - url
+    optional_fields:
+      - external_id
+      - relation_type
+      - note
+    field_definitions:
+      system:
+        type: string
+        example: github_pr
+      url:
+        type: string
+      external_id:
+        type: string
+        example: "#182"
+      relation_type:
+        type: string
+      note:
+        type: string
+
+  question_ref:
+    required_fields:
+      - q_id
+      - status
+    optional_fields:
+      - note
+    field_definitions:
+      q_id:
+        type: string
+        example: Q-001
+      status:
+        type: string
+        allowed_values:
+          - open
+          - resolved
+          - deferred
+
+  review_record:
+    required_fields:
+      - reviewer
+      - decision
+      - recorded_at
+    optional_fields:
+      - note
+      - related_transition
+    field_definitions:
+      reviewer:
+        type: actor_ref
+      decision:
+        type: enum
+        allowed_values:
+          - approve
+          - changes_requested
+          - comment
+      recorded_at:
+        type: iso8601_datetime
+      note:
+        type: string
+      related_transition:
+        type: string
+        example: in_review->approved
+
+  validation_record:
+    required_fields:
+      - validator_name
+      - result
+      - recorded_at
+    optional_fields:
+      - note
+    field_definitions:
+      validator_name:
+        type: string
+      result:
+        type: string
+      recorded_at:
+        type: iso8601_datetime
+      note:
+        type: string
+
+  status_transition_record:
+    required_fields:
+      - from_status
+      - to_status
+      - changed_at
+      - changed_by
+    optional_fields:
+      - note
+      - validation_snapshot
+    field_definitions:
+      from_status:
+        type: enum
+        allowed_values_ref: common_enums.artifact_statuses
+      to_status:
+        type: enum
+        allowed_values_ref: common_enums.artifact_statuses
+      changed_at:
+        type: iso8601_datetime
+      changed_by:
+        type: actor_ref
+      note:
+        type: string
+      validation_snapshot:
+        type: list[string]
+
+common_trace_unit_schema:
+  required_fields:
+    - id
+    - type
+    - title
+    - statement
+  optional_fields:
+    - status
+    - priority
+    - owner
+    - upstream_refs
+    - downstream_refs
+    - tags
+    - notes
+  field_definitions:
+    id:
+      type: string
+      pattern: "^[A-Z]+-[0-9]{3}$"
+      note: stable unit identifier scoped to the repository
+    type:
+      type: enum
+      allowed_values_ref: common_enums.trace_unit_types
+    title:
+      type: string
+      note: short label for list and graph views
+    statement:
+      type: string
+      note: canonical unit statement used by AI and validators
+    status:
+      type: enum
+      allowed_values_ref: common_enums.trace_unit_statuses
+    priority:
+      type: enum
+      allowed_values:
+        - critical
+        - high
+        - normal
+        - low
+    owner:
+      type: actor_ref
+    upstream_refs:
+      type: list[typed_ref]
+    downstream_refs:
+      type: list[typed_ref]
+    tags:
+      type: list[string]
+    notes:
+      type: list[string]
+
+trace_unit_type_definitions:
+  GOAL:
+    meaning: business or product goal
+    required_fields:
+      - success_measure
+    optional_fields:
+      - target_metric
+      - target_value
+    example: GOAL-001
+  REQ:
+    meaning: functional requirement
+    required_fields:
+      - rationale
+    optional_fields:
+      - scenario_refs
+      - priority
+    example: REQ-001
+  NFR:
+    meaning: non-functional requirement
+    required_fields:
+      - quality_attribute
+      - target
+    optional_fields:
+      - measurement_method
+    example: NFR-001
+  AC:
+    meaning: acceptance criterion
+    required_fields:
+      - verification_hint
+    optional_fields:
+      - scenario_refs
+    example: AC-001
+  DEC:
+    meaning: design or architecture decision
+    required_fields:
+      - rationale
+    optional_fields:
+      - alternatives_considered
+      - consequences
+    example: DEC-001
+  RISK:
+    meaning: risk item
+    required_fields:
+      - impact
+      - mitigation
+    optional_fields:
+      - likelihood
+    example: RISK-001
+  TASK:
+    meaning: execution task
+    required_fields:
+      - owner
+      - done_definition
+    optional_fields:
+      - depends_on
+      - estimate
+    example: TASK-001
+  TC:
+    meaning: test case or test checkpoint
+    required_fields:
+      - method
+      - expected_result
+    optional_fields:
+      - preconditions
+      - test_level
+    example: TC-001
+  REL:
+    meaning: release scope item
+    required_fields:
+      - release_target
+    optional_fields:
+      - rollout_strategy
+      - evidence_refs
+    example: REL-001
+  REV:
+    meaning: review finding or learning
+    required_fields:
+      - finding_type
+      - recommendation
+    optional_fields:
+      - follow_up_refs
+    example: REV-001
+  Q:
+    meaning: open question
+    required_fields:
+      - question
+    optional_fields:
+      - decision_due
+    example: Q-001
+
+relation_edge_schema:
+  required_fields:
+    - edge_id
+    - relation_type
+    - from
+    - to
+  optional_fields:
+    - status
+    - rationale
+    - created_at
+    - created_by
+  field_definitions:
+    edge_id:
+      type: string
+      example: EDGE-0001
+    relation_type:
+      type: enum
+      allowed_values_ref: relation_edge_types
+    from:
+      type: relation_endpoint
+    to:
+      type: relation_endpoint
+    status:
+      type: enum
+      allowed_values_ref: common_enums.relation_statuses
+    rationale:
+      type: string
+    created_at:
+      type: iso8601_datetime
+    created_by:
+      type: actor_ref
+
+  relation_endpoint:
+    required_fields:
+      - id
+      - kind
+    optional_fields:
+      - artifact_id
+      - type
+    field_definitions:
+      id:
+        type: string
+      kind:
+        type: enum
+        allowed_values:
+          - artifact
+          - trace_unit
+      artifact_id:
+        type: string
+        note: parent artifact when endpoint kind is trace_unit
+      type:
+        type: string
+        note: artifact type or trace unit type
+
+relation_edge_types:
+  derived_from:
+    use_for:
+      - artifact to artifact lineage
+      - downstream doc inherits problem context from upstream doc
+  refines:
+    use_for:
+      - GOAL to REQ
+      - REQ to AC
+  covers:
+    use_for:
+      - REQ or NFR to DEC
+      - DEC explicitly addresses upstream intent
+  implements:
+    use_for:
+      - DEC to TASK
+      - TASK directly implements REQ when no intermediate DEC is needed
+  verifies:
+    use_for:
+      - AC to TC
+      - test artifact references release gate evidence
+  ships:
+    use_for:
+      - TASK or REQ to REL
+  evaluates:
+    use_for:
+      - GOAL or REL to REV
+  mitigates:
+    use_for:
+      - TASK or DEC to RISK
+  blocked_by:
+    use_for:
+      - TASK dependency or artifact delivery dependency
+  references:
+    use_for:
+      - weak non-governing links
+  supersedes:
+    use_for:
+      - artifact or unit replacement across versions
+
+artifacts:
+  brief:
+    purpose: define why the work should be done
+    producer:
+      - pm
+    consumers:
+      - pm
+      - tech_lead
+      - design
+      - qa
+    required_inputs:
+      - problem discovery or stakeholder request
+    required_content_sections:
+      - background
+      - problem_statement
+      - target_users
+      - goals
+      - success_metrics
+      - non_goals
+    optional_content_sections:
+      - business_context
+      - constraints
+      - risks
+      - open_questions
+    required_trace_units:
+      GOAL:
+        minimum: 1
+    optional_trace_units:
+      - RISK
+      - Q
+    completion_standard:
+      - at least one GOAL exists
+      - scope and non_goals are explicit
+      - success metrics are explicit enough for later review
+
+  prd_story_pack:
+    purpose: define what should be built
+    producer:
+      - pm
+    consumers:
+      - tech_lead
+      - developer
+      - qa
+      - design
+    required_inputs:
+      - approved or active brief
+    required_content_sections:
+      - user_scenarios
+      - scope_in
+      - scope_out
+      - functional_requirements
+      - edge_cases
+      - acceptance_criteria
+    optional_content_sections:
+      - non_functional_requirements
+      - dependencies
+      - assumptions
+      - open_questions
+      - risks
+    required_trace_units:
+      REQ:
+        minimum: 1
+      AC:
+        minimum: 1
+    optional_trace_units:
+      - NFR
+      - RISK
+      - Q
+    completion_standard:
+      - important REQ map to GOAL
+      - each key REQ has at least one AC
+      - scope_in and scope_out are explicit
+
+  solution_design:
+    purpose: define how the work will be implemented
+    producer:
+      - tech_lead
+    consumers:
+      - developer
+      - qa
+      - pm
+    required_inputs:
+      - approved or active prd_story_pack
+    required_content_sections:
+      - solution_summary
+      - affected_components
+      - decisions
+      - coverage_map
+      - risks
+    optional_content_sections:
+      - data_changes
+      - api_changes
+      - alternatives
+      - rollback_considerations
+      - nfr_implementation
+    required_trace_units:
+      DEC:
+        minimum: 1
+    optional_trace_units:
+      - RISK
+      - Q
+    completion_standard:
+      - key REQ and NFR are covered by DEC
+      - affected components are explicit
+      - known implementation risks and rollback considerations are recorded
+
+  execution_plan:
+    purpose: define who does what and how execution is broken down
+    producer:
+      - tech_lead
+      - developer
+    consumers:
+      - developer
+      - pm
+      - qa
+    required_inputs:
+      - approved or active solution_design
+    required_content_sections:
+      - tasks
+      - owners
+      - done_definition
+    optional_content_sections:
+      - milestones
+      - dependencies
+      - blockers
+      - risk_tasks
+      - delivery_notes
+    required_trace_units:
+      TASK:
+        minimum: 1
+    optional_trace_units:
+      - RISK
+      - Q
+    completion_standard:
+      - core TASK reference REQ or DEC
+      - ownership and task dependency are explicit
+      - done definition exists for each key task
+
+  test_acceptance:
+    purpose: define how correctness is verified
+    producer:
+      - qa
+    consumers:
+      - qa
+      - developer
+      - pm
+      - release_owner
+    required_inputs:
+      - approved or active prd_story_pack
+      - approved or active solution_design
+    required_content_sections:
+      - test_scope
+      - coverage_matrix
+      - test_cases
+    optional_content_sections:
+      - out_of_scope
+      - risk_based_checks
+      - regression_scope
+      - entry_exit_criteria
+      - acceptance_result_template
+    required_trace_units:
+      TC:
+        minimum: 1
+    optional_trace_units:
+      - RISK
+      - Q
+    completion_standard:
+      - each key AC has at least one TC
+      - risk-based checks are explicit where needed
+      - release gate evidence can be derived from the artifact
+
+  release_review:
+    purpose: define what is shipping and what was learned
+    producer:
+      - release_owner
+      - tech_lead
+      - pm
+    consumers:
+      - pm
+      - developer
+      - qa
+      - operations
+    required_inputs:
+      - execution_plan
+      - test_acceptance
+    required_content_sections:
+      release_section:
+        - release_id
+        - release_scope
+        - included_requirements
+        - included_tasks
+        - rollback_plan
+        - go_live_checklist
+      review_section:
+        - goal_evaluation
+        - learnings
+    optional_content_sections:
+      release_section:
+        - known_risks
+        - observability_checks
+      review_section:
+        - scope_deviation
+        - quality_findings
+        - incidents
+        - follow_up_actions
+        - spec_update_suggestions
+    required_trace_units:
+      REL:
+        minimum: 1
+      REV:
+        minimum: 1
+    optional_trace_units:
+      - RISK
+      - Q
+    completion_standard:
+      - release explicitly declares shipped REQ or TASK scope
+      - review evaluates original GOAL and actual release outcome
+      - follow-up actions are explicit when deviations exist
+
+mandatory_traceability:
+  - upstream: GOAL
+    downstream: REQ
+    relation_type: refines
+    required: true
+    validation_level: error
+    note: each important requirement should trace to a goal
+  - upstream: REQ
+    downstream: AC
+    relation_type: refines
+    required: true
+    validation_level: error
+    note: each important requirement should define acceptance criteria
+  - upstream:
+      - REQ
+      - NFR
+    downstream: DEC
+    relation_type: covers
+    required: true
+    validation_level: error
+    note: key product requirements must be covered by solution decisions
+  - upstream: DEC
+    downstream: TASK
+    relation_type: implements
+    required: true
+    validation_level: error
+    note: key implementation decisions must land in execution tasks
+  - upstream: AC
+    downstream: TC
+    relation_type: verifies
+    required: true
+    validation_level: error
+    note: each acceptance criterion should have test coverage
+  - upstream:
+      - TASK
+      - REQ
+    downstream: REL
+    relation_type: ships
+    required: true
+    validation_level: error
+    note: release must declare what is shipping
+  - upstream:
+      - GOAL
+      - REL
+    downstream: REV
+    relation_type: evaluates
+    required: true
+    validation_level: error
+    note: review must evaluate goals and release result
+
+validation_model:
+  document_level_rules:
+    - artifact_id must be unique in the repository
+    - trace unit IDs must be unique in the repository
+    - required header fields must exist
+    - required content sections must exist
+    - all typed refs must resolve unless target_kind is external
+  relation_level_rules:
+    - relation edges must use declared relation types
+    - edge endpoints must resolve to an artifact or trace unit
+    - mandatory_traceability links must exist for in-scope key units
+  state_transition_rules:
+    - status transitions must be allowed by the artifact state machine
+    - review-gated transitions must have required review_records
+    - approved, active, and done artifacts should be treated as immutable except for status_history and external evidence
+    - material changes after approval should create a new version linked by supersedes
+  mvp_priority_rules:
+    - prd_story_pack in_review or beyond must satisfy REQ -> AC coverage
+    - solution_design in_review or beyond must satisfy REQ/NFR -> DEC coverage
+    - test_acceptance approved or beyond must satisfy AC -> TC coverage
+    - release_review active or beyond must satisfy TASK/REQ -> REL and GOAL/REL -> REV coverage
+
+state_model:
+  statuses_are_versioned: true
+  editable_statuses:
+    - draft
+    - in_review
+  immutable_statuses:
+    - approved
+    - active
+    - done
+    - archived
+  immutable_allowed_update_fields:
+    - updated_at
+    - review_records
+    - validation_records
+    - status_history
+    - external_refs
+    - change_summary
+  shared_status_meaning:
+    draft: authoring in progress; schema may still be incomplete
+    in_review: ready for human review; IDs and declared refs should already resolve
+    approved: accepted as the current valid handoff artifact
+    active: currently governing downstream work
+    done: downstream obligations for this version are completed
+    archived: retained for history but no longer the active source for new work
+  common_transition_pattern:
+    allowed_linear_flow:
+      - draft -> in_review
+      - in_review -> approved
+      - approved -> active
+      - active -> done
+      - done -> archived
+    allowed_rework_flow:
+      - in_review -> draft
+    exceptional_flow:
+      - approved -> archived
+    note: >-
+      v1 should avoid editing approved or active artifacts in place. Material
+      changes should create a new draft version linked by supersedes rather than
+      sending an already-governing artifact back to draft.
+  traceability_gate_levels:
+    structure_check:
+      required_for:
+        - draft -> in_review
+      validates:
+        - required header fields exist
+        - required content sections exist
+        - IDs are syntactically valid
+        - declared refs resolve where possible
+    handoff_check:
+      required_for:
+        - in_review -> approved
+      validates:
+        - structure_check
+        - artifact-local mandatory traceability is satisfied
+        - blocking open questions are resolved or explicitly deferred
+        - required review records exist
+    activation_check:
+      required_for:
+        - approved -> active
+      validates:
+        - required upstream artifacts are approved or active
+        - no blocking blockers remain
+        - activation-specific downstream readiness conditions are met
+    completion_check:
+      required_for:
+        - active -> done
+      validates:
+        - downstream obligations are met or explicitly waived
+        - completion evidence is present
+    archive_check:
+      required_for:
+        - done -> archived
+        - approved -> archived
+      validates:
+        - artifact is superseded, canceled, or preserved as closed history
+  artifact_specific_interpretation:
+    brief:
+      active: current problem framing for an active initiative
+      done: scoped delivery is complete and review context is available
+    prd_story_pack:
+      active: current requirement contract driving design or execution
+      done: all scoped requirement work has shipped or been explicitly closed
+    solution_design:
+      active: current implementation approach governing execution
+      done: design has been fully executed or superseded
+    execution_plan:
+      active: current task plan governing delivery
+      done: all key tasks are completed, canceled, or superseded
+    test_acceptance:
+      active: current source of truth for release gating and acceptance evidence
+      done: target release or milestone has finished acceptance
+    release_review:
+      active: release is in progress or under live observation
+      done: release review is closed and follow-up actions are recorded
+
+artifact_state_machines:
+  brief:
+    state_actors:
+      owner_roles:
+        - pm
+      required_reviewer_roles:
+        - pm
+      optional_reviewer_roles:
+        - design
+        - qa
+      activation_roles:
+        - pm
+        - tech_lead
+      closure_roles:
+        - pm
+    transitions:
+      - from: draft
+        to: in_review
+        allowed_by:
+          - owner_roles
+        gate_level: structure_check
+        gates:
+          - at least one GOAL exists
+          - scope, non_goals, and success metrics are explicit
+      - from: in_review
+        to: draft
+        allowed_by:
+          - owner_roles
+          - required_reviewer_roles
+        gate_level: none
+        gates:
+          - review feedback or change request is recorded
+      - from: in_review
+        to: approved
+        allowed_by:
+          - owner_roles
+        gate_level: handoff_check
+        gates:
+          - required_reviewer_roles have approved or accepted the handoff
+          - goals are stable enough to drive PRD definition
+        traceability_checks:
+          - GOAL units are uniquely identifiable for downstream references
+      - from: approved
+        to: active
+        allowed_by:
+          - activation_roles
+        gate_level: activation_check
+        gates:
+          - the initiative has entered active planning
+          - downstream PRD work has been authorized
+        traceability_checks:
+          - declared downstream artifact refs resolve if present
+      - from: active
+        to: done
+        allowed_by:
+          - closure_roles
+        gate_level: completion_check
+        gates:
+          - at least one downstream PRD exists
+          - release and review context for the scoped initiative exists or is explicitly waived
+        traceability_checks:
+          - GOAL -> REQ coverage remains intact for shipped scope
+      - from: done
+        to: archived
+        allowed_by:
+          - closure_roles
+        gate_level: archive_check
+        gates:
+          - the initiative is historically closed or superseded
+      - from: approved
+        to: archived
+        allowed_by:
+          - closure_roles
+        gate_level: archive_check
+        gates:
+          - the initiative is canceled before activation
+
+  prd_story_pack:
+    state_actors:
+      owner_roles:
+        - pm
+      required_reviewer_roles:
+        - tech_lead
+        - qa
+      optional_reviewer_roles:
+        - developer
+        - design
+      activation_roles:
+        - pm
+        - tech_lead
+      closure_roles:
+        - pm
+    transitions:
+      - from: draft
+        to: in_review
+        allowed_by:
+          - owner_roles
+        gate_level: structure_check
+        gates:
+          - scope_in and scope_out are explicit
+          - at least one REQ and one AC exist
+      - from: in_review
+        to: draft
+        allowed_by:
+          - owner_roles
+          - required_reviewer_roles
+        gate_level: none
+        gates:
+          - review feedback or changes requested are recorded
+      - from: in_review
+        to: approved
+        allowed_by:
+          - owner_roles
+        gate_level: handoff_check
+        gates:
+          - required_reviewer_roles have approved or accepted the handoff
+          - the artifact is ready to serve as the requirement contract for design
+        traceability_checks:
+          - key GOAL -> REQ coverage exists
+          - key REQ -> AC coverage exists
+      - from: approved
+        to: active
+        allowed_by:
+          - activation_roles
+        gate_level: activation_check
+        gates:
+          - the artifact is selected as the governing requirement baseline
+          - blocking requirement questions are resolved or explicitly deferred
+        traceability_checks:
+          - upstream brief is approved or active
+      - from: active
+        to: done
+        allowed_by:
+          - closure_roles
+        gate_level: completion_check
+        gates:
+          - scoped work is shipped, canceled, or explicitly closed
+          - release_review exists for the scoped delivery
+        traceability_checks:
+          - shipped scope can be traced from REQ to REL
+      - from: done
+        to: archived
+        allowed_by:
+          - closure_roles
+        gate_level: archive_check
+        gates:
+          - a newer requirement baseline exists or the initiative is closed
+      - from: approved
+        to: archived
+        allowed_by:
+          - closure_roles
+        gate_level: archive_check
+        gates:
+          - the PRD is canceled before activation
+
+  solution_design:
+    state_actors:
+      owner_roles:
+        - tech_lead
+      required_reviewer_roles:
+        - tech_lead
+      optional_reviewer_roles:
+        - qa
+      activation_roles:
+        - tech_lead
+      closure_roles:
+        - tech_lead
+    transitions:
+      - from: draft
+        to: in_review
+        allowed_by:
+          - owner_roles
+        gate_level: structure_check
+        gates:
+          - at least one DEC exists
+          - affected components and solution summary are explicit
+      - from: in_review
+        to: draft
+        allowed_by:
+          - owner_roles
+          - required_reviewer_roles
+        gate_level: none
+        gates:
+          - review feedback or changes requested are recorded
+      - from: in_review
+        to: approved
+        allowed_by:
+          - owner_roles
+        gate_level: handoff_check
+        gates:
+          - required_reviewer_roles have approved or accepted the handoff
+          - the design is implementable enough for task planning
+        traceability_checks:
+          - key REQ/NFR -> DEC coverage exists
+          - major risks and rollback considerations are traceable
+      - from: approved
+        to: active
+        allowed_by:
+          - activation_roles
+        gate_level: activation_check
+        gates:
+          - execution planning or implementation has started against this design
+        traceability_checks:
+          - upstream PRD is approved or active
+      - from: active
+        to: done
+        allowed_by:
+          - closure_roles
+        gate_level: completion_check
+        gates:
+          - implementation is complete or superseded
+          - any design deviations are recorded in downstream artifacts
+        traceability_checks:
+          - DEC -> TASK coverage exists for in-scope key decisions
+      - from: done
+        to: archived
+        allowed_by:
+          - closure_roles
+        gate_level: archive_check
+        gates:
+          - a newer design baseline exists or the initiative is closed
+      - from: approved
+        to: archived
+        allowed_by:
+          - closure_roles
+        gate_level: archive_check
+        gates:
+          - implementation is canceled before activation
+
+  execution_plan:
+    state_actors:
+      owner_roles:
+        - tech_lead
+        - developer
+      required_reviewer_roles:
+        - tech_lead
+      optional_reviewer_roles:
+        - qa
+      activation_roles:
+        - tech_lead
+        - developer
+      closure_roles:
+        - tech_lead
+        - developer
+    transitions:
+      - from: draft
+        to: in_review
+        allowed_by:
+          - owner_roles
+        gate_level: structure_check
+        gates:
+          - at least one TASK exists
+          - ownership and done definition are explicit
+      - from: in_review
+        to: draft
+        allowed_by:
+          - owner_roles
+          - required_reviewer_roles
+        gate_level: none
+        gates:
+          - review feedback or changes requested are recorded
+      - from: in_review
+        to: approved
+        allowed_by:
+          - owner_roles
+        gate_level: handoff_check
+        gates:
+          - required_reviewer_roles have approved or accepted the handoff
+          - the plan is actionable enough for execution
+        traceability_checks:
+          - key DEC -> TASK coverage exists
+          - task-level ownership and dependency refs resolve
+      - from: approved
+        to: active
+        allowed_by:
+          - activation_roles
+        gate_level: activation_check
+        gates:
+          - implementation has started against this plan
+        traceability_checks:
+          - upstream design is approved or active
+      - from: active
+        to: done
+        allowed_by:
+          - closure_roles
+        gate_level: completion_check
+        gates:
+          - all key tasks are complete, canceled, or superseded
+          - release packaging work is available downstream
+        traceability_checks:
+          - in-scope TASK units can be traced to REL or an explicit waiver
+      - from: done
+        to: archived
+        allowed_by:
+          - closure_roles
+        gate_level: archive_check
+        gates:
+          - a newer execution baseline exists or the initiative is closed
+      - from: approved
+        to: archived
+        allowed_by:
+          - closure_roles
+        gate_level: archive_check
+        gates:
+          - execution is canceled before activation
+
+  test_acceptance:
+    state_actors:
+      owner_roles:
+        - qa
+      required_reviewer_roles:
+        - qa
+      optional_reviewer_roles:
+        - developer
+      activation_roles:
+        - qa
+        - release_owner
+      closure_roles:
+        - qa
+        - release_owner
+    transitions:
+      - from: draft
+        to: in_review
+        allowed_by:
+          - owner_roles
+        gate_level: structure_check
+        gates:
+          - at least one TC exists
+          - test scope and coverage matrix are explicit
+      - from: in_review
+        to: draft
+        allowed_by:
+          - owner_roles
+          - required_reviewer_roles
+        gate_level: none
+        gates:
+          - review feedback or changes requested are recorded
+      - from: in_review
+        to: approved
+        allowed_by:
+          - owner_roles
+        gate_level: handoff_check
+        gates:
+          - required_reviewer_roles have approved or accepted the handoff
+          - the artifact is sufficient for release gating
+        traceability_checks:
+          - key AC -> TC coverage exists
+          - risk-based checks exist where marked as required
+      - from: approved
+        to: active
+        allowed_by:
+          - activation_roles
+        gate_level: activation_check
+        gates:
+          - test execution or release qualification has started
+        traceability_checks:
+          - upstream PRD and design are approved or active
+      - from: active
+        to: done
+        allowed_by:
+          - closure_roles
+        gate_level: completion_check
+        gates:
+          - execution results are recorded
+          - acceptance outcome is explicit for the scoped release
+        traceability_checks:
+          - all release-blocking AC items have TC evidence or explicit waivers
+      - from: done
+        to: archived
+        allowed_by:
+          - closure_roles
+        gate_level: archive_check
+        gates:
+          - the target release or milestone is historically closed
+      - from: approved
+        to: archived
+        allowed_by:
+          - closure_roles
+        gate_level: archive_check
+        gates:
+          - the release scope is canceled before test execution
+
+  release_review:
+    state_actors:
+      owner_roles:
+        - release_owner
+        - tech_lead
+        - pm
+      required_reviewer_roles:
+        - qa
+        - tech_lead
+        - release_owner
+      optional_reviewer_roles:
+        - operations
+      activation_roles:
+        - release_owner
+      closure_roles:
+        - release_owner
+        - pm
+    transitions:
+      - from: draft
+        to: in_review
+        allowed_by:
+          - owner_roles
+        gate_level: structure_check
+        gates:
+          - release_section and review_section skeletons exist
+          - at least one REL and one REV placeholder exist
+      - from: in_review
+        to: draft
+        allowed_by:
+          - owner_roles
+          - required_reviewer_roles
+        gate_level: none
+        gates:
+          - review feedback or changes requested are recorded
+      - from: in_review
+        to: approved
+        allowed_by:
+          - owner_roles
+        gate_level: handoff_check
+        gates:
+          - required_reviewer_roles have approved or accepted the handoff
+          - release scope, rollback plan, and review criteria are explicit
+        traceability_checks:
+          - shipped TASK/REQ candidates are explicitly mapped into REL items
+          - planned review links to GOAL and release outcome exist
+      - from: approved
+        to: active
+        allowed_by:
+          - activation_roles
+        gate_level: activation_check
+        gates:
+          - release is starting or live observation is starting
+        traceability_checks:
+          - required test gating evidence is present
+          - TASK/REQ -> REL coverage exists for shipped scope
+      - from: active
+        to: done
+        allowed_by:
+          - closure_roles
+        gate_level: completion_check
+        gates:
+          - release outcome and review learnings are recorded
+          - follow-up actions exist for unresolved findings
+        traceability_checks:
+          - GOAL/REL -> REV evaluation coverage exists
+      - from: done
+        to: archived
+        allowed_by:
+          - closure_roles
+        gate_level: archive_check
+        gates:
+          - release and review are historically closed
+      - from: approved
+        to: archived
+        allowed_by:
+          - closure_roles
+        gate_level: archive_check
+        gates:
+          - the release is canceled before activation
+
+minimal_ai_access_model:
+  addressable_objects:
+    artifact:
+      stable_key: artifact_id
+      minimum_return_shape:
+        - header
+        - section_index
+        - trace_unit_index
+        - relation_edge_index
+    trace_unit:
+      stable_key: id
+      minimum_return_shape:
+        - parent_artifact_id
+        - core_fields
+        - upstream_refs
+        - downstream_refs
+    relation_edge:
+      stable_key: edge_id
+      minimum_return_shape:
+        - relation_type
+        - from
+        - to
+        - status
+  read_operations:
+    get_artifact:
+      inputs:
+        - artifact_id
+        - view
+      view_values:
+        - header
+        - full
+        - trace_only
+    get_trace_unit:
+      inputs:
+        - trace_unit_id
+    list_related:
+      inputs:
+        - object_id
+        - direction
+        - relation_type_optional
+    trace_upstream:
+      inputs:
+        - trace_unit_id
+        - stop_at_type_optional
+    trace_downstream:
+      inputs:
+        - trace_unit_id
+        - stop_at_type_optional
+    get_coverage:
+      inputs:
+        - upstream_type
+        - downstream_type
+        - artifact_scope_optional
+    diff_versions:
+      inputs:
+        - artifact_id
+        - from_version
+        - to_version
+    get_status_history:
+      inputs:
+        - artifact_id
+    list_open_questions:
+      inputs:
+        - artifact_id_optional
+        - status_optional
+  write_operations:
+    create_artifact_draft:
+      inputs:
+        - relative_path
+        - artifact_id
+        - artifact_type
+        - title
+        - summary
+        - version
+        - owner
+        - scope
+        - created_at
+    revise_artifact_draft:
+      inputs:
+        - artifact_id
+        - body_optional
+        - header_updates_optional
+        - updated_at
+    record_review_decision:
+      inputs:
+        - artifact_id
+        - review_record
+    promote_artifact_status:
+      inputs:
+        - artifact_id
+        - target_status
+    record_validation_result:
+      inputs:
+        - artifact_id
+        - validator_name
+        - result
+    supersede_artifact_version:
+      inputs:
+        - successor_artifact_id
+        - predecessor_artifact_id
+        - edge_id
+        - created_at
+        - created_by
+
+design_constraints:
+  - core objects must have stable IDs
+  - AI should operate on structured objects before falling back to full-text reading
+  - prioritize traceability before advanced automation
+  - keep v1 artifact set small
+  - each artifact should answer purpose, producer, consumer, inputs, and completion standard
+  - use canonical schema first, platform adapters later
+  - GitHub integration should treat external links as adapters, not source of truth
+
+trellis_positioning:
+  summary: >-
+    Useful as a reference for engineering-side spec/task/memory workflow,
+    but should not be treated as the blueprint for the whole product.
+  should_use_as:
+    - reference for engineering execution layer
+    - reference for spec/task/memory organization
+    - reference for workflow scaffolding
+  should_not_use_as:
+    - full product definition
+    - lifecycle-wide artifact model
+    - cross-role protocol blueprint
+
+open_questions:
+  - Should machine-readable blocks live entirely in frontmatter or partly in structured body sections?
+  - How strict should key-unit classification be in v1 when deciding mandatory coverage?
+  - Should release and review remain a combined artifact type in v1.1?
+  - What sync metadata should adapters persist without polluting canonical headers?

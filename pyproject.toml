@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "traceloom"
+version = "0.1.0"
+description = "Git-native artifact protocol tooling for traceable product delivery artifacts."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+  {name = "bikeread", email = "bikeread2008@gmail.com"},
+]
+keywords = [
+  "traceability",
+  "mcp",
+  "ai",
+  "product-delivery",
+  "markdown",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Quality Assurance",
+]
+urls = {Homepage = "https://github.com/bikeread/Traceloom", Repository = "https://github.com/bikeread/Traceloom", Issues = "https://github.com/bikeread/Traceloom/issues"}
+dependencies = [
+  "mcp>=1.26.0,<2",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.2.2",
+  "pyinstaller>=6.0",
+  "pytest>=8.0",
+  "twine>=5.0",
+]
+
+[project.scripts]
+traceloom = "traceloom.cli:main"
+
+[tool.setuptools]
+packages = ["traceloom"]
+
+[tool.setuptools.package-data]
+traceloom = [
+  "bundled/demo-repo/*",
+  "resources/*.yaml",
+]

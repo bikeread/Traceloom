@@ -1,0 +1,54 @@
+name: Build Companion Executable
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build-companion:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            python-version: "3.11"
+            artifact-name: traceloom-companion-macos
+          - os: windows-latest
+            python-version: "3.11"
+            artifact-name: traceloom-companion-windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install companion build tooling
+        run: python -m pip install .[dev]
+
+      - name: Build companion executable
+        run: pyinstaller pyinstaller/traceloom.spec
+
+      - name: Smoke companion executable
+        shell: bash
+        run: |
+          BINARY="dist/traceloom/traceloom"
+          if [ -f "dist/traceloom/traceloom.exe" ]; then
+            BINARY="dist/traceloom/traceloom.exe"
+          fi
+          python scripts/smoke_companion_bundle.py "$BINARY"
+
+      - name: Upload companion artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: dist/traceloom
