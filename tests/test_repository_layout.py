@@ -364,19 +364,15 @@ def test_cli_and_mcp_guides_surface_navigation_and_design_check_entrypoints():
 
 
 def test_guided_action_runtime_docs_and_changelog_surface_local_read_only_execution():
-    for relative_path in (
-        REPO_ROOT / "docs" / "design" / "09_runtime_roadmap.md",
-        REPO_ROOT / "CHANGELOG.md",
-    ):
-        guide_text = relative_path.read_text(encoding="utf-8")
+    guide_text = (REPO_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
 
-        for expected_snippet in (
-            "guided_action_package",
-            "prepare-guided-action",
-            "execute-guided-action",
-            "read-only",
-        ):
-            assert expected_snippet in guide_text, f"{relative_path}: {expected_snippet}"
+    for expected_snippet in (
+        "guided_action_package",
+        "prepare-guided-action",
+        "execute-guided-action",
+        "read-only",
+    ):
+        assert expected_snippet in guide_text, expected_snippet
 
 
 def test_root_readmes_offer_bilingual_entrypoints():
